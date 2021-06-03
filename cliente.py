@@ -1,6 +1,5 @@
 import socket
 import threading
-import sys
 
 # Choosing Nickname
 print("Bem vindo ao Humortadela!!")
@@ -8,7 +7,9 @@ nickname = input("Como deseja ser chamado: ")
 
 # Connecting To Server
 client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-client.connect(('127.0.0.1', 55558))
+client.connect(('127.0.0.1', 55555))
+
+mutex = threading.Semaphore(1)
 
 encerrar_conexao = False
 
@@ -18,7 +19,8 @@ def receive():
         global encerrar_conexao
         if encerrar_conexao:
             break
-        
+
+        #mutex.acquire()
         try:
             # Receive Message From Server
             # If 'NICK' Send Nickname
@@ -28,35 +30,43 @@ def receive():
             elif message == 'QUIT':
                 print("Conexão encerrada")
                 client.close()
+                mutex.acquire()
                 encerrar_conexao = True
-                exit(0)
+                mutex.release()
+                #exit(0)
             else:
                 print(message)
+            #mutex.release()
         except:
             # Close Connection When Error
             print("Aconteceu um problema!")
             client.close()
-            exit(0)
+            #exit(0)
             break
+
+        #mutex.release()
 
 # Sending Messages To Server
 def write():
     while True:
+        #testar mutex aqui
         if encerrar_conexao:
             break
         
         message = '{}: {}'.format(nickname, input(''))
+        
         if message[len(nickname)+2:].startswith('/'):
             if message[len(nickname)+2:].startswith('/help'):
                 client.send('HELP'.encode('UTF-8'))
             elif message[len(nickname)+2:].startswith('/list'):
                 client.send('LIST'.encode('UTF-8'))
             elif message[len(nickname)+2:].startswith('/quit'):
-                client.send(f'QUIT {message[len(nickname)+2+6]}'.encode('UTF-8'))
+                client.send(f'QUIT {message[len(nickname)]}'.encode('UTF-8'))
             else:
                 print("Comando inválido, use /help para ver os comandos disponíveis")    
         else:
             client.send(message.encode('UTF-8'))
+        
 
 # Starting Threads For Listening And Writing
 receive_thread = threading.Thread(target=receive)

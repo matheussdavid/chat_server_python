@@ -3,12 +3,13 @@ import threading
 
 # Connection Data
 host = '127.0.0.1'
-port = 55558
+port = 55555
 
 # Starting Server
 server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 server.bind((host, port))
 server.listen()
+mutex = threading.Semaphore(1)
 
 # Lists For Clients and Their Nicknames
 clients = []
@@ -28,25 +29,25 @@ def handle(client):
                 print("teste list")
             elif msg.decode('UTF-8').startswith('QUIT'):
                 usuario = msg.decode('UTF-8')[5:]
-                sair(usuario)
+                sair(usuario, client)
                 client.send('QUIT'.encode('UTF-8'))
             else:
                 broadcast(message)
         except:
             index = clients.index(client)
             clients.remove(client)
-            client.send('QUIT'.encode('UTF-8'))
+            #client.send('QUIT'.encode('UTF-8'))
             client.close()
             nickname = nicknames[index]
             broadcast('{} saiu da sala!'.format(nickname).encode('UTF-8'))
-            nicknames.remove(nickname)            
+            nicknames.remove(nickname)         
             break
         
-def sair(usuario):
+def sair(usuario, client):
     if usuario in clients:
         index = clients.index(usuario)
         clients.remove(usuario)
-        usuario.close()
+        client.close()
         nickname = nicknames[index]
         broadcast('{} saiu da sala!'.format(nickname).encode('UTF-8'))
         nicknames.remove(nickname)    
