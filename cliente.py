@@ -12,6 +12,17 @@ client.connect(('127.0.0.1', 55558))
 
 encerrar_conexao = False
 
+def trata_mensagem(mensagem):
+    users = mensagem.replace("LIST", "")
+    users = users.replace(",", "\n")
+    users = users.replace("'", "")
+    users = users.replace("[", "")
+    users = users.replace("]", "")
+    users = users.replace(" ", "")
+    return users
+
+
+
 # Listening to Server and Sending Nickname
 def receive():
     while True:
@@ -30,6 +41,9 @@ def receive():
                 client.close()
                 encerrar_conexao = True
                 exit(0)
+            elif message.startswith('LIST'):
+                lista_usuarios = trata_mensagem(message)
+                print(f'Usuários ativos:\n{lista_usuarios}')
             else:
                 print(message)
         except:
@@ -57,6 +71,7 @@ def write():
                 print("Comando inválido, use /help para ver os comandos disponíveis")    
         else:
             client.send(message.encode('UTF-8'))
+
 
 # Starting Threads For Listening And Writing
 receive_thread = threading.Thread(target=receive)

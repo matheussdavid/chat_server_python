@@ -25,7 +25,7 @@ def handle(client):
             if msg.decode('UTF-8').startswith('HELP'):
                 client.send('Comandos Disponíveis:\n*/help - Mostra os comandos disponíveis\n*/list - Lista os usuários online\n*/quit nomeDoUsuario - Para sair do chat'.encode('UTF-8'))
             elif msg.decode('UTF-8').startswith('LIST'):
-                print("teste list")
+                client.send(f'LIST {nicknames}'.encode('UTF-8'))
             elif msg.decode('UTF-8').startswith('QUIT'):
                 usuario = msg.decode('UTF-8')[5:]
                 sair(usuario)
@@ -62,9 +62,9 @@ def receive():
         nicknames.append(nickname)
         clients.append(client)
         
-        print("O Apelido é {}".format(nickname))
-        broadcast("{} entrou na sala! Bem vindo!\n".format(nickname).encode('UTF-8'))
-        client.send('Conexão estabelecida com o servidor!'.encode('UTF-8'))
+        print("Seu Apelido é {}".format(nickname))
+        broadcast("{} entrou na sala, dê as boas vindas!\n".format(nickname).encode('UTF-8'))
+        client.send('Conexão estabelecida com o servidor! Seja bem-vindo'.encode('UTF-8'))
 
         thread = threading.Thread(target=handle, args=(client,))
         thread.start()
