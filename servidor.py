@@ -3,7 +3,7 @@ import threading
 
 # Connection Data
 host = '127.0.0.1'
-port = 55555
+port = 55557
 
 # Starting Server
 server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -15,6 +15,12 @@ mutex = threading.Semaphore(1)
 clients = []
 nicknames = []
 
+help = '''
+Comandos Disponíveis:
+*/help - Mostra os comandos disponíveis
+*/list - Lista os usuários online
+*/quit - Para sair do chat'''
+
 def broadcast(message):
     for client in clients:
         client.send(message)
@@ -24,33 +30,39 @@ def handle(client):
         try:
             msg = message = client.recv(1024)
             if msg.decode('UTF-8').startswith('HELP'):
-                client.send('Comandos Disponíveis:\n*/help - Mostra os comandos disponíveis\n*/list - Lista os usuários online\n*/quit nomeDoUsuario - Para sair do chat'.encode('UTF-8'))
+                client.send(help.encode('UTF-8'))
             elif msg.decode('UTF-8').startswith('LIST'):
                 client.send(f'LIST {nicknames}'.encode('UTF-8'))
             elif msg.decode('UTF-8').startswith('QUIT'):
                 usuario = msg.decode('UTF-8')[5:]
                 sair(usuario, client)
+                broadcast('{} saiu da sala!'.format(nickname).encode('UTF-8'))
                 client.send('QUIT'.encode('UTF-8'))
+            elif msg.decode('UTF-8').startswith('WHISPER'):
+                mensagem = msg.decode('UTF-8')[8:]
+                broadcast(mensagem.encode('UTF-8'))                
             else:
                 broadcast(message)
         except:
+            mutex.acquire()
             index = clients.index(client)
             clients.remove(client)
-            #client.send('QUIT'.encode('UTF-8'))
             client.close()
             nickname = nicknames[index]
             broadcast('{} saiu da sala!'.format(nickname).encode('UTF-8'))
-            nicknames.remove(nickname)         
+            nicknames.remove(nickname)
+            mutex.release()         
             break
         
 def sair(usuario, client):
     if usuario in clients:
+        mutex.acquire()
         index = clients.index(usuario)
         clients.remove(usuario)
         client.close()
         nickname = nicknames[index]
-        broadcast('{} saiu da sala!'.format(nickname).encode('UTF-8'))
         nicknames.remove(nickname)    
+        mutex.release()   
         
 def receive():
     while True:
@@ -60,12 +72,15 @@ def receive():
 
         client.send('NICK'.encode('UTF-8'))
         nickname = client.recv(1024).decode('UTF-8')
-        nicknames.append(nickname)
-        clients.append(client)
         
         print("Seu Apelido é {}".format(nickname))
         broadcast("{} entrou na sala, dê as boas vindas!\n".format(nickname).encode('UTF-8'))
         client.send('Conexão estabelecida com o servidor! Seja bem-vindo'.encode('UTF-8'))
+        
+        mutex.acquire()   
+        nicknames.append(nickname)
+        clients.append(client)
+        mutex.release()
 
         thread = threading.Thread(target=handle, args=(client,))
         thread.start()

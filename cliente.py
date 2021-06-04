@@ -7,7 +7,7 @@ nickname = input("Como deseja ser chamado: ")
 
 # Connecting To Server
 client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-client.connect(('127.0.0.1', 55555))
+client.connect(('127.0.0.1', 55557))
 
 mutex = threading.Semaphore(1)
 
@@ -40,22 +40,22 @@ def receive():
                 client.send(nickname.encode('UTF-8'))
             elif message == 'QUIT':
                 print("Conexão encerrada")
-                client.close()
                 mutex.acquire()
+                client.close()
                 encerrar_conexao = True
                 mutex.release()
-                #exit(0)
             elif message.startswith('LIST'):
                 lista_usuarios = trata_mensagem(message)
                 print(f'Usuários ativos:\n{lista_usuarios}')
             else:
-                print(message)
-            #mutex.release()
+                if message.startswith(nickname):
+                    mensagem = message[len(nickname)+1:]
+                    print(f'Mesangem privada: {mensagem}')
+                else:
+                    print(message)
         except:
-            # Close Connection When Error
             print("Aconteceu um problema!")
             client.close()
-            #exit(0)
             break
 
         #mutex.release()
@@ -76,6 +76,8 @@ def write():
                 client.send('LIST'.encode('UTF-8'))
             elif message[len(nickname)+2:].startswith('/quit'):
                 client.send(f'QUIT {message[len(nickname)]}'.encode('UTF-8'))
+            elif message[len(nickname)+2:].startswith('/whisper'):
+                client.send(f'WHISPER {message[len(nickname)+2+9:]}'.encode('UTF-8'))
             else:
                 print("Comando inválido, use /help para ver os comandos disponíveis")    
         else:
