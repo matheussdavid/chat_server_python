@@ -1,17 +1,17 @@
 import socket
 import threading
 
-# Connection Data
+
 host = '127.0.0.1'
 port = 55557
 
-# Starting Server
+
 server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 server.bind((host, port))
 server.listen()
 mutex = threading.Semaphore(1)
 
-# Lists For Clients and Their Nicknames
+
 clients = []
 nicknames = []
 
