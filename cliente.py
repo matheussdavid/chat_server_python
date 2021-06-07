@@ -2,14 +2,12 @@ import socket
 import threading
 
 
-print("Bem vindo ao Humortadela!!")
+print("Bem vindo ao Chat da massa!!")
 nickname = input("Como deseja ser chamado: ")
 
 
 client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-client.connect(('127.0.0.1', 55559))
-
-
+client.connect(('127.0.0.1', 55556))
 mutex = threading.Semaphore(1)
 
 
@@ -33,24 +31,26 @@ def receive():
             break
 
         try:
-            message = client.recv(1024).decode('UTF-8')
-            if message == 'NICK':
+            mensagem = client.recv(1024).decode('UTF-8')
+            if mensagem == 'NICK':
                 client.send(nickname.encode('UTF-8'))
-            elif message == 'QUIT':
+            elif mensagem == 'QUIT':
                 print("Conexão encerrada")
                 mutex.acquire()
                 client.close()
                 encerrar_conexao = True
                 mutex.release()
-            elif message == 'TESTE':
+            elif mensagem == 'TESTE':
                 print('O apelido já está em uso, escolha outro.!')
+                mutex.acquire()
                 client.close()
                 encerrar_conexao = True
-            elif message.startswith('LIST'):
-                lista_usuarios = trata_mensagem(message)
+                mutex.release()
+            elif mensagem.startswith('LIST'):
+                lista_usuarios = trata_mensagem(mensagem)
                 print(f'Usuários ativos:\n{lista_usuarios}')
             else:
-                print(message)
+                print(mensagem)
         except:
             print("Aconteceu um problema!")
             client.close()
@@ -62,21 +62,21 @@ def write():
         if encerrar_conexao:
             break
         
-        message = '{}: {}'.format(nickname, input(''))
+        mensagem = '{}: {}'.format(nickname, input(''))
         
-        if message[len(nickname)+2:].startswith('/'):
-            if message[len(nickname)+2:].startswith('/help'):
+        if mensagem[len(nickname)+2:].startswith('/'):
+            if mensagem[len(nickname)+2:].startswith('/help'):
                 client.send('HELP'.encode('UTF-8'))
-            elif message[len(nickname)+2:].startswith('/list'):
+            elif mensagem[len(nickname)+2:].startswith('/list'):
                 client.send('LIST'.encode('UTF-8'))
-            elif message[len(nickname)+2:].startswith('/quit'):
-                client.send(f'QUIT {message[len(nickname)]}'.encode('UTF-8'))
-            elif message[len(nickname)+2:].startswith('/whisper'):
-                client.send(f'WHISPER {message[len(nickname)+2+9:]}'.encode('UTF-8'))
+            elif mensagem[len(nickname)+2:].startswith('/quit'):
+                client.send(f'QUIT {mensagem[len(nickname)]}'.encode('UTF-8'))
+            elif mensagem[len(nickname)+2:].startswith('/whisper'):
+                client.send(f'WHISPER {mensagem[len(nickname)+2+9:]}'.encode('UTF-8'))
             else:
                 print("Comando inválido, use /help para ver os comandos disponíveis")    
         else:
-            client.send(message.encode('UTF-8'))
+            client.send(mensagem.encode('UTF-8'))
         
 
 receive_thread = threading.Thread(target=receive)

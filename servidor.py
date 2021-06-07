@@ -3,7 +3,7 @@ import threading
 
 
 host = '127.0.0.1'
-port = 55559
+port = 55556
 
 
 server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -56,16 +56,16 @@ def handle(client):
             break
         
 def whisper(mensagem):
-    teste = mensagem.split(":")
-    usuario = teste[0]
-    sender = teste[1].replace(" ", "")
-    mensagem = teste[2]
+    msg = mensagem.split(":")
+    usuario = msg[0]
+    remetente = msg[1].replace(" ", "")
+    mensagem = msg[2]
     if usuario in nicknames:
         posicao = nicknames.index(usuario)
         cliente = clients[posicao]
-        cliente.send(f'Mensagem privada: {sender}:{mensagem}'.encode('UTF-8'))
+        cliente.send(f'Mensagem privada: {remetente}:{mensagem}'.encode('UTF-8'))
     else:
-        posicao = nicknames.index(sender)
+        posicao = nicknames.index(remetente)
         cliente = clients[posicao]
         cliente.send('Não foi possível enviar sua mensagem privada, este usuário não foi encontrado!'.encode('UTF-8'))
         
@@ -81,7 +81,6 @@ def sair(usuario, client):
         
 def receive():
     while True:
-        print("Servidor online!!")
         client, address = server.accept()
         print("Conexão estabelecida com {}".format(str(address)))
 
@@ -104,6 +103,7 @@ def receive():
 
         thread = threading.Thread(target=handle, args=(client,))
         thread.start()
+print("Servidor online!!")
 receive()        
         
 
