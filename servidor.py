@@ -54,15 +54,18 @@ def handle(client):
             nicknames.remove(nickname)
             mutex.release()         
             break
+        
 def whisper(mensagem):
     teste = mensagem.split(":")
     usuario = teste[0]
-    mensagem = teste[1]
+    sender = teste[1]
+    mensagem = teste[2]
     if usuario in nicknames:
         posicao = nicknames.index(usuario)
         cliente = clients[posicao]
-        cliente.send(f'Mensagem privada:{mensagem}'.encode('UTF-8'))
-        
+        cliente.send(f'Mensagem privada: {sender}: {mensagem}'.encode('UTF-8'))
+    else:
+        client.send()
         
 def sair(usuario, client):
     if usuario in clients:
