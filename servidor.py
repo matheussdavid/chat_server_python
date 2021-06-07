@@ -3,7 +3,7 @@ import threading
 
 
 host = '127.0.0.1'
-port = 55557
+port = 55559
 
 
 server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -20,7 +20,7 @@ Comandos Disponíveis:
 */help - Mostra os comandos disponíveis
 */list - Lista os usuários online
 */quit - Para sair do chat
-*/whisper - envia uma mensagem privada (Ex: nomeDoUsuario: mensagem'''
+*/whisper - Envia uma mensagem privada (Ex: /whisper nomeDoDestinatario: nomeDeQuemEnvia: mensagem)'''
 
 def broadcast(message):
     for client in clients:
@@ -58,14 +58,16 @@ def handle(client):
 def whisper(mensagem):
     teste = mensagem.split(":")
     usuario = teste[0]
-    sender = teste[1]
+    sender = teste[1].replace(" ", "")
     mensagem = teste[2]
     if usuario in nicknames:
         posicao = nicknames.index(usuario)
         cliente = clients[posicao]
-        cliente.send(f'Mensagem privada: {sender}: {mensagem}'.encode('UTF-8'))
+        cliente.send(f'Mensagem privada: {sender}:{mensagem}'.encode('UTF-8'))
     else:
-        client.send()
+        posicao = nicknames.index(sender)
+        cliente = clients[posicao]
+        cliente.send('Não foi possível enviar sua mensagem privada, este usuário não foi encontrado!'.encode('UTF-8'))
         
 def sair(usuario, client):
     if usuario in clients:
@@ -85,6 +87,11 @@ def receive():
 
         client.send('NICK'.encode('UTF-8'))
         nickname = client.recv(1024).decode('UTF-8')
+        
+        if nickname in nicknames:
+            client.send('TESTE'.encode('UTF-8'))
+            client.close()
+            continue
         
         print("Seu Apelido é {}".format(nickname))
         broadcast("{} entrou na sala, dê as boas vindas!\n".format(nickname).encode('UTF-8'))

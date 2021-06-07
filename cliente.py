@@ -7,7 +7,7 @@ nickname = input("Como deseja ser chamado: ")
 
 
 client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-client.connect(('127.0.0.1', 55557))
+client.connect(('127.0.0.1', 55559))
 
 
 mutex = threading.Semaphore(1)
@@ -42,6 +42,10 @@ def receive():
                 client.close()
                 encerrar_conexao = True
                 mutex.release()
+            elif message == 'TESTE':
+                print('O apelido já está em uso, escolha outro.!')
+                client.close()
+                encerrar_conexao = True
             elif message.startswith('LIST'):
                 lista_usuarios = trata_mensagem(message)
                 print(f'Usuários ativos:\n{lista_usuarios}')
