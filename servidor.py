@@ -19,7 +19,8 @@ help = '''
 Comandos Disponíveis:
 */help - Mostra os comandos disponíveis
 */list - Lista os usuários online
-*/quit - Para sair do chat'''
+*/quit - Para sair do chat
+*/whisper - envia uma mensagem privada (Ex: nomeDoUsuario: mensagem'''
 
 def broadcast(message):
     for client in clients:
@@ -40,7 +41,7 @@ def handle(client):
                 client.send('QUIT'.encode('UTF-8'))
             elif msg.decode('UTF-8').startswith('WHISPER'):
                 mensagem = msg.decode('UTF-8')[8:]
-                broadcast(mensagem.encode('UTF-8'))                
+                whisper(mensagem)            
             else:
                 broadcast(message)
         except:
@@ -53,6 +54,15 @@ def handle(client):
             nicknames.remove(nickname)
             mutex.release()         
             break
+def whisper(mensagem):
+    teste = mensagem.split(":")
+    usuario = teste[0]
+    mensagem = teste[1]
+    if usuario in nicknames:
+        posicao = nicknames.index(usuario)
+        cliente = clients[posicao]
+        cliente.send(f'Mensagem privada:{mensagem}'.encode('UTF-8'))
+        
         
 def sair(usuario, client):
     if usuario in clients:

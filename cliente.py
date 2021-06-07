@@ -48,11 +48,7 @@ def receive():
                 lista_usuarios = trata_mensagem(message)
                 print(f'Usuários ativos:\n{lista_usuarios}')
             else:
-                if message.startswith(nickname):
-                    mensagem = message[len(nickname)+1:]
-                    print(f'Mesangem privada: {mensagem}')
-                else:
-                    print(message)
+                print(message)
         except:
             print("Aconteceu um problema!")
             client.close()
